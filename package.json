@@ -1,18 +1,23 @@
 {
   "name": "nofood.api",
   "version": "1.0.0",
-  "description": "api para testar",
+  "description": "Api feita em nodeJs para utilização do nosso aplicativo NoFood",
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Theogenes",
+  "author": "Theogenes Oliveira",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
+    "jsonwebtoken": "^8.3.0",
     "md5": "^2.2.1",
-    "mongoose": "^5.3.11"
-  }
+    "mongoose": "^5.2.5"
+  },
+  "bin": {
+    "nofood.api": "express.js"
+  },
+  "devDependencies": {}
 }
