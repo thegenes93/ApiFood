@@ -1,14 +1,12 @@
-'use strict'
 require('../models/produto-model');
 const base = require('../bin/base/repository-base');
-
 
 class produtoRepository {
 
     constructor() {
-        this._base = new base('produto');
+        this._base = new base('Produto');
     }
-
+    
     async create(data) {
         return await this._base.create(data);
     }
@@ -24,7 +22,7 @@ class produtoRepository {
     async getById(id) {
         return await this._base.getById(id);
     }
-    
+
     async delete(id) {
         return await this._base.delete(id);
     }

@@ -1,8 +1,8 @@
 'use strict'
+
 const mongoose = require('mongoose');
 
-
-class repositoruBase {
+class repositoryBase {
 
     constructor(model) {
         this._model = mongoose.model(model);
@@ -15,12 +15,9 @@ class repositoruBase {
     }
 
     async update(id, data) {
-        await this._model.findByIdAndUpdate(id, {
-            $set: data
-        })
-        let resultado = await this._model.findByIdfindById(id);
+        await this._model.findByIdAndUpdate(id, { $set: data });
+        let resultado = await this._model.findById(id);
         return resultado;
-
     }
 
     async getAll() {
@@ -32,9 +29,9 @@ class repositoruBase {
     }
 
     async delete(id) {
-        return await this._model.remove(id);
+        return await this._model.findByIdAndRemove(id);
     }
 
 }
 
-module.exports = repositoruBase;
+module.exports = repositoryBase;

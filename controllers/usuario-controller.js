@@ -1,64 +1,94 @@
-// evita que variaveis sem criadas sem ser declaradas anteriomente 
 'use strict'
-// importa o modulo usuario repository
+
 const repository = require('../repositories/usuario-repository');
-
-// importa o modulo validation
 const validation = require('../bin/helpers/validation');
-
-//importa modulo de controle base
 const ctrlBase = require('../bin/base/controller-base');
-
-// instancia o repositorio
 const _repo = new repository();
-
-//modulo de criptografia 
 const md5 = require('md5');
+const jwt = require('jsonwebtoken');
+const variables = require('../bin/configuration/variables');
 
-// cria um class usando functio mas pode ser feita com CLass
+
 function usuarioController() {
 
 }
-// cria um metodo para post 
+
 usuarioController.prototype.post = async (req, res) => {
-    // instancia a validation
-    const _validationContract = new validation();
-      // metodos para validação das informações
+
+    let _validationContract = new validation();
+
+    _validationContract.isRequired(req.body.nome, 'Informe seu nome');
     _validationContract.isRequired(req.body.email, 'Informe seu e-mail');
-    _validationContract.isEmail(req.body.email, 'o email informado é invalido');
-    _validationContract.isRequired(req.body.senha, 'A senha informada é invalida');
-    _validationContract.isRequired(req.body.senhaConfirmacao, 'A senha de confirmação é obrigatoria');
-    _validationContract.isTrue(req.body.senha != req.body.senhaConfirmacao, 'A senha e a confirmação não são iguais');
-    // metodo para verificar se email exite na base de dados
-    let usuarioIsEmailExiste = await _repo.isEmail(req.body.email);
+    _validationContract.isEmail(req.body.email, 'O e-mail informado é inválido');
+    _validationContract.isRequired(req.body.senha, 'A senha informada é obrigatória');
+    _validationContract.isRequired(req.body.senhaConfirmacao, 'A senha de confirmação é obrigatória');
+    _validationContract.isTrue(req.body.senha != req.body.senhaConfirmacao, 'A Senha e a Confirmação não são iguais');
+
+    let usuarioIsEmailExiste = await _repo.IsEmailExite(req.body.email);
     if (usuarioIsEmailExiste) {
-        _validationContract.isTrue((usuarioIsEmailExiste != undefined), 'já exite o email ${req.body.email} cadastrado');
+        _validationContract.isTrue((usuarioIsEmailExiste.nome != undefined), `Já existe o e-mail ${req.body.email} cadastrado em nossa base.`);
     }
-    // criptografa a senha do usuario
+
+    //Criptografa a senha do usuário
     req.body.senha = md5(req.body.senha);
-    ctrlBase.post(_repo, _validationContract, req ,res)
+
+    ctrlBase.post(_repo, _validationContract, req, res);
 };
-// cria um metodo para atualização
+
 usuarioController.prototype.put = async (req, res) => {
-    // instancia o update do repositorio para realizar a atualização
-    let resultado = await _repo.update(req.params.id, req.body);
-    // retorna o status com o resultado
-    res.status(202).send(resultado);
+    let _validationContract = new validation();
+
+    _validationContract.isRequired(req.body.nome, 'Informe seu nome');
+    _validationContract.isRequired(req.body.email, 'Informe seu e-mail');
+    _validationContract.isEmail(req.body.email, 'O e-mail informado é inválido');
+    _validationContract.isRequired(req.params.id, 'Informe oId do usuário que será editado');
+
+    let usuarioIsEmailExiste = await _repo.IsEmailExite(req.body.email);
+    if (usuarioIsEmailExiste) {
+        _validationContract.isTrue(
+            (usuarioIsEmailExiste.nome != undefined) &&
+            (usuarioIsEmailExiste._id != req.params.id),
+            `Já existe o e-mail ${req.body.email} cadastrado em nossa base.`);
+    }
+    ctrlBase.put(_repo, _validationContract, req, res);
 };
-// cria um metodo para pegar todas as informaçoes no banco
+
 usuarioController.prototype.get = async (req, res) => {
-    let lista = await _repo.getAll();
-    res.status(200).send(lista);
+    ctrlBase.get(_repo, req, res);
 };
-// cria um metodo para pegar informaçoes especificas no banco
+
 usuarioController.prototype.getById = async (req, res) => {
-    let categoriaEncontrada = await _repo.getById(req.params.id);
-    res.status(200).send(categoriaEncontrada);
+    ctrlBase.getById(_repo, req, res);
 };
 
 usuarioController.prototype.delete = async (req, res) => {
-    let deletado = await _repo.delete(req.params.id);
-    res.status(204).send(deletado);
+    ctrlBase.delete(_repo, req, res);
 };
-// exporta o modulo controle de usuarios
+
+usuarioController.prototype.autenticar = async (req, res) =>{
+    try {
+    let _validationContract = new validation();
+    _validationContract.isRequired(req.body.email, 'infome seu email');
+    _validationContract.isValid(req.body.email, 'infome um email valido');
+    _validationContract.isRequired(req.body.senha, 'senha');
+        if(!_validationContract.isValid()){
+            res.status(400).send({menssage:'não foi possivel realizar o login',validation: _validationContract.errors});
+            return
+        }
+      
+      let usuarioEncontrado = await _repo.authenticate(req.body.email, req.body.senha) ;
+      if(usuarioEncontrado){
+          res.status(200).send({
+              usuario: usuarioEncontrado,
+              token: jwt.sign({user: usuarioEncontrado},variables.Security.secretyKey)
+          })
+
+      }else{
+          res.status(404).send({menssage:'usuario e senha informados são invalidos'})
+      }
+    } catch (error) {
+        
+    }
+}
+
 module.exports = usuarioController;

@@ -1,35 +1,28 @@
-'use strict'
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const variables = require('../bin/configuration/variables');
 
 //routers
-const categoriaRouter = require('../routes/categoria-router');
+const categoriaRouter = require('../routes/catergoria-router');
 const produtoRouter = require('../routes/produto-router');
 const usuarioRouter = require('../routes/usuario-router');
 
-
-// Criando a apiServer web do express
+//Criando/Invocando a Api/Server Web do Express
 const app = express();
 
-//configurando o parser Json
+//Configuração de parse do JSON
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(bodyParser.urlencoded({ extended: false }));
 
+//Configurando a conexão com banco de dados
+mongoose.connect(variables.Database.connection, { useNewUrlParser: true });
 
-//configurando com o banco de dados
-mongoose.connect(variables.Database.connection, {
-    useNewUrlParser: true
-});
-
-//configurando as rotas
-
+//Configurando as rotas
 app.use('/api/categoria', categoriaRouter);
 app.use('/api/produto', produtoRouter);
 app.use('/api/usuario', usuarioRouter);
 
-//modulo export
+
+//Exportando nossa Api
 module.exports = app;
